@@ -565,6 +565,8 @@ $(document).ready(function() {
         }
         var defaultString = defaultValue ? " (default)":"";
         $('#slider-value').html(strVal + defaultString);
+        $('#chat-input-hidden').css("height",strVal+"px");
+        ('#chat-input').css("height",strVal+"px");
     });
     $("#reconnect").click(initSock);
 });
