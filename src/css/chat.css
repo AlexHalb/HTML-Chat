@@ -114,10 +114,13 @@ textarea {
 }
 /************** Settings ***************/
 #chat-tab-settings {
-    color:white
+    color:white;
+    font-family: 'Century Gothic', 'Didact Gothic', Arial, sans-serif;
 }
 .settings-header {
-    font-size:18px
+    font-size:20px;
+    margin-top:2px;
+    margin-bottom:5px;
 }
 #slider {
     display:inline;
@@ -126,6 +129,12 @@ textarea {
 #slider-value {
     vertical-align: super;
     display:inline;
+}
+#preview {
+    margin-top:2px;
+}
+button {
+    color:white;
 }
 /************** Buttons ***************/
 

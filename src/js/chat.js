@@ -330,7 +330,6 @@ function postMessage( raw_msg, isHistory ) {
         $("#chat-tab-global").mCustomScrollbar("scrollTo", chatAutoScroll, {callbacks: false});
     }, 100);
 }
-
 /**
  * Adds the user to the current user's ignore list
  * @param user: Username to add to the ignore list
@@ -389,7 +388,19 @@ function usernameFromOptions(target) {
 
     throw new Error('Unhandled options target');
 }
-
+function refreshIgnoredList() {
+    var htmlStr = "";
+    for (var i = 0; i<ignoredUsers.length; i++) {
+        let start = "<li>";
+        let ignoredUser = ignoredUsers[i];
+        let end = "</li>";
+        htmlStr = htmlStr + start + ignoredUser + end;
+    }
+    if (htmlStr === ""){
+        htmlStr = "<li>You have not ignored any users</li>";
+    }
+    $('#ignored-users-list').html(htmlStr);
+}
 $(document).ready(function() {
     document.addEventListener("visibilitychange", function() {
         if('visible' === document.visibilityState)
@@ -413,6 +424,7 @@ $(document).ready(function() {
                         $("#chat-tab-global").mCustomScrollbar("scrollTo", chatAutoScroll, {callbacks: false});
                     }, 100);
                 }
+                refreshIgnoredList();
             }
         }
     });
@@ -566,7 +578,11 @@ $(document).ready(function() {
         var defaultString = defaultValue ? " (default)":"";
         $('#slider-value').html(strVal + defaultString);
         $('#chat-input-hidden').css("height",strVal+"px");
-        ('#chat-input').css("height",strVal+"px");
+        $('#chat-input').css("height",strVal+"px");
+    });
+    $('#unignore-all-button').click(function(){
+       unignoreUser("*");
+       refreshIgnoredList();
     });
     $("#reconnect").click(initSock);
 });

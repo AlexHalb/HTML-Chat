@@ -13,7 +13,7 @@
         <ul>
             <li class="tab"><a href="#chat-tab-global">Chat</a></li>
             <li class="tab"><a href="#chat-tab-users">Online (<span id="chat-users-online">0</span>)</a></li>
-            <li class="tab"><a href="#chat-tab-settings">Settings</span></a></li>
+            <li class="tab" id="settings-tab"><a href="#chat-tab-settings">Settings</span></a></li>
             <li style="float: right;"><div id="minimization-triangle"></div></li>
         </ul>
         <div id="chat-content" style="border: rgba(255, 255, 255, 0.2) solid 2px; height: Calc(100% - 34px); position: relative;">
@@ -34,10 +34,18 @@
                 </div>
 
                 <div id="chat-tab-settings">
-                    <p id="font-size-header" class="settings-header">Font Size</p>
-                    <input id="slider" type=range min=10 max=24 value=14></input>
-                    <p id="slider-value">14 (default)</p>
-                    <p id="preview" style="font-size: 14;">Preview</p>
+                    <div id="font-size" class="chat-settings-setting">
+                        <p id="font-size-header" class="settings-header">Font Size</p>
+                        <input id="slider" type=range min=10 max=24 value=14></input>
+                        <p id="slider-value">14 (default)</p>
+                        <p id="preview" style="font-size: 14;">Preview</p>
+                    </div>
+                    <div id="ignored-users" class="chat-settings-setting">
+                        <p id="ignored-users-header" class="settings-header">Ignored Users</p>
+                        <ul id="ignored-users-list">
+                        </ul>
+                        <button id="unignore-all-button" class="green-button">Unignore All</button>
+                    </div>
                 </div>
             </div>
             <div id="chat-loading" style="position: relative; top: Calc(50% - 55px); color: #FFF; text-align: center;">
