@@ -556,6 +556,7 @@ $(document).ready(function() {
         var strVal = val.toString()
         $('#preview').css("font-size",strVal + "px");
         $('.chat-message').css("font-size",strVal+ "px");
+        $('#chat-input').css("font-size",strVal+ "px");
         $('.tab').css("font-size",strVal + "px");
         $('.chat-userlist-user').css("font-size",strVal + "px");
         var defaultValue = false;
