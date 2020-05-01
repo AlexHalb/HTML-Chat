@@ -177,8 +177,7 @@ function addUser( username ) {
             if (userA.name > userB.name) return 1;
             return 0;
         });
-
-        userli = '<li id="chat-userlist-user-{USERNAME_LOW}" class="chat-userlist-user"><a target="_blank" href="http://{WORKBRANCH}/web/player/{UID}/">{USERNAME}</a>{OPTS}</li>';
+        userli = '<li id="chat-userlist-user-{USERNAME_LOW}" class="chat-userlist-user"><a target="_blank" href="http://{WORKBRANCH}/web/player/{UID}/" class=".user-list-link">{USERNAME}</a>{OPTS}</li>';
         userli = userli.replace('{USERNAME_LOW}', username.toLowerCase())
                        .replace('{USERNAME}', username)
                        .replace('{UID}', uid)
@@ -306,25 +305,6 @@ function postMessage( raw_msg, isHistory ) {
     // Images are also disabled, as we currently don't have a way to format them properly.
     raw_msg = md.renderInline(raw_msg);
 
-    //Emoticons
-    for (var i = 0; i<raw_msg.split(":").length/2; i++) {
-        raw_msg = raw_msg.replace(":happy:","&#128512"); //Replace :happy: and synonyms with smiling face emoji. Emoji depends on platform user is on
-        raw_msg = raw_msg.replace(":smile:","&#128512");
-        raw_msg = raw_msg.replace(":smiling:","&#128512");
-        raw_msg = raw_msg.replace(":sad:","&#128546"); //Same as above, but for sad face 
-        raw_msg = raw_msg.replace(":crying:","&#128546");
-        raw_msg = raw_msg.replace(":angry:","&#128544"); //Angry face
-        raw_msg = raw_msg.replace(":mad:","&#128544"); 
-        raw_msg = raw_msg.replace(":surprised:","&#128558"); //Surprised face
-        raw_msg = raw_msg.replace(":shocked:","&#128558");
-        raw_msg = raw_msg.replace(":shock:","&#128558");
-        raw_msg = raw_msg.replace(":surpise:","&#128558");
-        raw_msg = raw_msg.replace(":question:","&#129300"); //Curious face
-        raw_msg = raw_msg.replace(":curious:","&#129300");
-        raw_msg = raw_msg.replace(":wondering:","&#129300");
-        raw_msg = raw_msg.replace(":thumbsup:","&#128077"); //Thumbs up
-        raw_msg = raw_msg.replace(":thumbsdown:","&#128078"); //Thumbs down 
-    }
     // Don't show messages from user on ignore list
     if ( ignoredUsers.includes(name) ){return;}
 
@@ -571,48 +551,21 @@ $(document).ready(function() {
             return false;
         }
     });
-    //+ button emoticon
-    $('#emoticon1').click(function(){
-        $('#emoticon2').toggleClass('emoticon-hidden');
-        $('#emoticon3').toggleClass('emoticon-hidden');
-        $('#emoticon4').toggleClass('emoticon-hidden');
-        $('#emoticon5').toggleClass('emoticon-hidden');
-        $('#emoticon6').toggleClass('emoticon-hidden');
-        $('#emoticon7').toggleClass('emoticon-hidden');
-        $('#emoticon8').toggleClass('emoticon-hidden');
-        $('#chat-input').toggleClass('bigger');
-        $('#chat-input').toggleClass('smaller');
-    });
-    //Other emoticons
-    $('#emoticon2').click(function(){
-        $('#chat-input').val($('#chat-input').val()+"🤔");
-    });
-    $('#emoticon3').click(function(){
-        $('#chat-input').val($('#chat-input').val()+"👎");
-    });
-    $('#emoticon4').click(function(){
-        $('#chat-input').val($('#chat-input').val()+"😢");
-    });
-    $('#emoticon5').click(function(){
-        $('#chat-input').val($('#chat-input').val()+"😮");
-    });
-    $('#emoticon6').click(function(){
-        $('#chat-input').val($('#chat-input').val()+"😠");
-    });
-    $('#emoticon7').click(function(){
-        $('#chat-input').val($('#chat-input').val()+"👍");
-    });
-    $('#emoticon8').click(function(){
-        $('#chat-input').val($('#chat-input').val()+"😀");
-    });
-    $('#emoticon9').click(function(){
-        $('#chat-input').val($('#chat-input').val()+"😀");
-    });
-    $('#emoticon10').click(function(){
-        $('#chat-input').val($('#chat-input').val()+"👍");
+    $(document).on('input', '#slider', function() {
+        var val = $(this).val();
+        var strVal = val.toString()
+        $('#preview').css("font-size",strVal + "px");
+        $('.chat-message').css("font-size",strVal+ "px");
+        $('.tab').css("font-size",strVal + "px");
+        $('.chat-userlist-user').css("font-size",strVal + "px");
+        var defaultValue = false;
+        if (parseInt(strVal) === 14) {
+            defaultValue = true
+        }
+        var defaultString = defaultValue ? " (default)":"";
+        $('#slider-value').html(strVal + defaultString);
     });
     $("#reconnect").click(initSock);
-
 });
 
 function sendMessage(message){
@@ -654,7 +607,7 @@ function sendMessage(message){
                             postMessage("Example: /unignore *");
                             break;
                         default:
-                            postMessage("Available commands: help, me, ignore, ignore-list, unignore, emotes");
+                            postMessage("Available commands: help, me, ignore, ignore-list, unignore");
                             postMessage("Type /help <command> for information on individual commands");
                             postMessage("Example: /help me");
                             postMessage("Additional commands available via LinkBot (see the [wiki](http://eternawiki.org/wiki/index.php5/HELP) for more information)");
@@ -677,16 +630,6 @@ function sendMessage(message){
                 case "unignore":
                     if (!params){ postMessage("Please include command parameters. Type /help unignore for more usage instructions"); break; }
                     unignoreUser(params)
-                    break;
-                case "emotes":
-                    postMessage("Put colons around the emote name. Emote names are:");
-                    postMessage("happy 😀");
-                    postMessage("sad: 😢");
-                    postMessage("angry 😠");
-                    postMessage("curious 🤔");
-                    postMessage("surprised 😮");
-                    postMessage("thumbsup 👍");
-                    postMessage("thumbsdown 👎");
                     break;
                 default:
                     postMessage("Invalid command. Type /help for more available commands");
