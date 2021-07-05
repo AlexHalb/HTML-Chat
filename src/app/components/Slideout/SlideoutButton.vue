@@ -1,11 +1,21 @@
 <template>
-  <Button
-    :class="{active: selected}"
+  <!-- Centers images -->
+  <button
+    class='border-0'
+     @click="$emit('input')"
+     :aria-label="`${name} tab`"
+  >
+    <center
+    class='border-0 font-weight-bold text-white d-inline-block'
     @click="$emit('input')"
   >
-    {{ name }}
+    <img
+    :alt="`${this.selected ? 'Selected' : 'Unselected'} ${name} tab`"
+    :src="require(`@/assets/${name}-icon-${selected ? 'green' : 'white'}.png`)"
+    >
     <slot />
-  </Button>
+  </center>
+  </button>
 </template>
 
 <script lang="ts">
@@ -14,37 +24,26 @@
 
   @Component
   export default class SlideoutButton extends Vue {
-    @Prop()
+    @Prop({ required: true })
     name!: string;
 
     @Prop({ required: true })
-    selected!: string;
+    selected!: boolean;
   }
 </script>
 
 
 <style lang="scss" scoped>
   /* Style the buttons that are used to open the tab content */
-  button {
-    border: none;
+  center {
     outline: none;
     cursor: pointer;
     transition: 0.3s;
-    padding: 0.4em 1.25em;
     font-family: "Century Gothic", "Didact Gothic", Arial, sans-serif;
     font-size: 12px;
-    font-weight: bold;
-    color: #fff;
-    background-color: rgba(255, 255, 255, 0.07);
-    text-transform: capitalize;
+    width:40px;
   }
-
-  /* Change background color of buttons on hover */
-  button:hover:not(.active) {
-    background-color: rgba(255, 255, 255, 0.13);
-  }
-
-  button.active {
-    background-color: rgba(255, 255, 255, 0.2);
+  button {
+    background-color:transparent;
   }
 </style>

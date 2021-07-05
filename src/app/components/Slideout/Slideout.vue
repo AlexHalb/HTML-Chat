@@ -1,25 +1,40 @@
 <template>
-  <div style="height: 100%;" v-show="!minimized">
-    <div style="position:relative;">
-      <SlideoutButton
-        :selected="chatSelected"
-        :name="`Chat`"
-        @input="activeTab = 0"
+  <div
+    style="position:relative; width:70%"
+    class="slideout-container text-white"
+    :class="{ slideoutContainerHidden: !checked, tall:checked}"
+  >
+    <HamburgerMenuButton v-model="checked" :notification="notifications" :mention="mentions"/>
+    <span v-show="checked">
+      <span
+      id="slideout-header"
+      class='align-items-center d-inline-flex'
+      >
+        <SlideoutButton
+          :selected="chatSelected"
+          name="chat"
+          @input="activeTab = 0"
+          class='slideout-button'
+        />
+        <SlideoutButton
+          name="user"
+          :selected="userSelected"
+          @input="activeTab = 1"
+          class='slideout-button'
+        />
+        <SlideoutButton
+          name="settings"
+          :selected="settingsSelected"
+          @input="activeTab = 2"
+          class='slideout-button'
+        />
+      </span>
+      <SlideoutChats
+        v-if="chatSelected"
       />
-      <SlideoutButton
-       :selected="userSelected"
-        :name="`Users`"
-        @input="activeTab = 1"
-      />
-      <SlideoutButton
-        :selected="settingsSelected"
-        :name="`Settings`"
-        @input="activeTab = 2"
-      />
-    </div>
-    <SlideoutChats
-      v-if="chatSelected"
-    />
+      <SlideoutUser v-if="userSelected" />
+      <SlideoutSettings v-if="settingsSelected" @auth="$emit('auth')"/>
+    </span>
   </div>
 </template>
 
@@ -27,29 +42,36 @@
   import {
     Vue, Component, Prop, Watch,
   } from 'vue-property-decorator';
-  import MinimizationTriangle from '@/components/MinimizationTriangle.vue';
-  import TabButton from '@/components/TabButton.vue';
-  import ConnectingPopup from '@/components/Connection/ConnectingPopup.vue';
-  import ReportDialog from '@/components/ReportDialog.vue';
-  import SlideoutChats from '@/components/Slideout/SlideoutChats.vue';
-  import SlideoutButton from '@/components/Slideout/SlideoutButton.vue';
-  import UserPane from '@/components/Panes/UserPane.vue';
+  import SlideoutChats from './Chat/SlideoutChats.vue';
+  import SlideoutUser from './Users/SlideoutUser.vue';
+  import SlideoutSettings from './Settings/SlideoutSettings.vue';
+  import SlideoutButton from './SlideoutButton.vue';
+  import HamburgerMenuButton from './HamburgerMenuButton.vue';
+  import { Channel } from '../../store/chat.vuex';
 
   @Component({
     components: {
-      MinimizationTriangle,
-      TabButton,
       SlideoutChats,
-      UserPane,
+      SlideoutUser,
+      SlideoutSettings,
       SlideoutButton,
+      HamburgerMenuButton,
     },
   })
   export default class Slideout extends Vue {
-    @Prop({ required: true })
-    active!:boolean;
-
     activeTab = 0;
 
+    // For hamburger
+    checked = false;
+
+    @Prop({ required: true }) // Whether chat is minimized
+    minimizedValue !: boolean;
+
+    get tabbing() { // If the tab key has been pressed - used to conditionally enable focus rings
+      return this.$vxm.chat.tabbing;
+    }
+
+    // Each of the functions below tells whether a given tab is selected
     get chatSelected() {
         return this.activeTab === 0;
     }
@@ -62,60 +84,107 @@
       return this.activeTab === 2;
     }
 
-    @Watch('activeTab')
-    tabChanged() {
-        this.$vxm.chat.changeTab2(this.activeTab);
+    get currentTab() {
+      return this.$vxm.chat.chatChannel;
+    }
+
+    get vxmOpen() { // Checks to see if the slideout should be closed (click outside)
+      return this.$vxm.chat.slideoutOpen;
+    }
+
+    @Watch('vxmOpen')
+    close() {
+      if (!this.vxmOpen) { // If it should be closed, do so
+        this.checked = false;
+      }
+    }
+
+    get notifications() {
+      // If any channels have notifications
+      // eslint-disable-next-line max-len
+      const anyNotifications = Object.values(this.$vxm.chat.channels).some(item => item?.notifications);
+      return anyNotifications;
+    }
+
+    get mentions() {
+      // If any channels have mentions
+      // eslint-disable-next-line max-len
+      const anyMentions = Object.values(this.$vxm.chat.channels).some(item => item?.mentioned);
+      return anyMentions;
+    }
+
+    @Watch('notifications')
+    notificationsChanged() {
+      // Notifications indicator in the page title that shows if there are unread messages
+      const notificationIndicator: string = ` ${this.$vxm.settings.indicator}`;
+      if (this.notifications) { // If notifications were just changed to true
+        document.title = `html-chat${notificationIndicator}`;
+      } else { // If notifications just read
+        document.title = 'html-chat';
+      }
+    }
+
+    // Slideout slides back when minimized
+    @Watch('minimizedValue')
+    minimzationChanged() {
+      if (!this.minimizedValue) {
+        this.checked = false;
+      }
+    }
+
+    @Watch('checked') // Slideout checked
+    checkedChanged() {
+      this.$vxm.chat.slideoutOpen = Boolean(this.checked);
+      if (!this.checked) { // If slideout is closing
+        // Set current tab (what user is looking at) to read
+        this.$vxm.chat.readChannel(this.currentTab);
+      }
+    }
+
+    created() {
+      /* Prevents all the text from being highlighted
+      if the slideout is opened and closed too quickly */
+      document.addEventListener('mousedown', (e) => {
+        if (e.detail > 1) {
+          e.preventDefault();
+        }
+      }, false);
     }
   }
 </script>
 
-<style lang="scss">
-  @import '~vue-context/src/sass/vue-context';
-  textarea {
-    border-radius: 2px;
-    font-family: "Open Sans", "Helvetica Neue", Arial, Gulim;
-    font-size: 0.85rem;
-    border: 1px solid rgb(169, 169, 169);
-    width: calc(100% - 10px);
-    font-size: 14px !important;
-  }
-</style>
-
-<style lang="scss" scoped>
-  #eterna-chat {
-    min-width: 0;
-    font-family: "Helvetica Neue", "Open Sans", Arial, Gulim;
-    font-size: 14px;
-    font-weight: 300;
-  }
-
-  .minimization-triangle {
-    position: absolute;
-    top: 0px;
-    right: 0px;
-  }
-
-  .tabs {
-    position: relative;
-    height: 25px;
-    margin: 0;
-    padding: 0;
-  }
-
-  .fade-enter-active,
-  .fade-leave-active {
-    transition: opacity 200ms;
-  }
-
-  .fade-enter, .fade-leave-to
-  {
-    opacity: 0;
-  }
-
-  .chat-content {
-    border: rgba(255, 255, 255, 0.2) solid 2px;
-    height: calc(100% - 29px);
-    position: relative;
-    color: #c0dce7;
-  }
+<style scoped>
+.hamburger { /* Hamburger button */
+  position: relative;
+}
+.slideout-container { /* Container for slideout */
+  background-color:black;
+  top:0px;
+  left:0px;
+  z-index: 2;
+  height: 100%;
+}
+.slideoutContainerHidden { /* When slideout is closed */
+  height:0px;
+  animation: slideBack 0.25s;
+}
+@keyframes slide { /* Opens slideout */
+  from { left:-70%}
+  to { left:0}
+}
+/* Height does need to be there for the slideout to work. Otherwise it doesn't animate */
+@keyframes slideBack { /* Closes slideout */
+  to {height:100%; width:0}
+  from {height:100%; width:70%}
+}
+.tall { /* When slideout is open */
+  height:100%;
+  animation: slide 0.25s;
+}
+#slideout-header { /* Displays tab buttons */
+  height:40px;
+  margin-left:-15px; /* Treats hamburger button distance correctly */
+  width: calc(100% - 30px); /* Makes sure there is room to fill */
+  justify-content: space-evenly; /* Fills the room */
+}
 </style>
